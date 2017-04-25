@@ -196,6 +196,24 @@ return {
 		unitTest:assertEquals(#x[1][2][20][1], 5)
 		unitTest:assertEquals(#x[1][2][20][2], 5)
 	end,
+	mean = function(unitTest)
+		local R = RServe{}
+		local x = R:mean{1,2,3,4,5,6,7,8,9,10}
+		unitTest:assertEquals(x, 5.5)
+	end,
+	sd = function(unitTest)
+		local R = RServe{}
+		local x = R:sd{1,2,3,4,5,6,7,8,9,10}
+		unitTest:assertEquals(x, 3.02765, 0.00001)
+	end,
+	lm = function(unitTest)
+		local R = RServe{}
+		local data = DataFrame{ctl = {4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14}, trt = {4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69}, gfg = {4.16,5.57,5.16,6.08,4.49,4.60,5.14,4.51,5.32,5.13}, weight = {4.17, 5.18, 4.50, 5.17, 5.33, 4.81, 4.41, 5.87, 4.89, 4.69}}
+		local x = R:lm{data = data, response = "ctl", terms = {"weight", "trt", "gfg"}}
+		unitTest:assertEquals(x[1], -0.049973, 0.001)
+		unitTest:assertEquals(x[2], 0.000062, 0.0001)
+		unitTest:assertEquals(x[3], 0.004117, 0.0001)
+	end,
 	__tostring = function(unitTest)
 		unitTest:assertEquals(tostring(RServe{}), [[host  string [localhost]
 port  number [6311]

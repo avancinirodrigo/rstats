@@ -31,7 +31,6 @@ return {
 		--end
 		--unitTest:assertError(error_func, "Could not connect to RServe at localhost using port 987654.") --SKIP
 	end,
-
 	evaluate = function(unitTest)
 		local R = RServe{}
 		local error_func = function()
@@ -48,5 +47,26 @@ return {
 			R:evaluate("x <- 1:10; y <- if (x < 5 ) 0 else 1")
 		end
 		unitTest:assertError(error_func, "[RServe] Warning: the condition has length > 1 and only the first element will be used", 1)
+	end,
+	mean = function(unitTest)
+		local R = RServe{}
+		local error_func = function()
+			R:mean(2)
+		end
+		unitTest:assertError(error_func, incompatibleTypeMsg(1, "table", 2))
+	end,
+	sd = function(unitTest)
+		local R = RServe{}
+		local error_func = function()
+			R:sd(2)
+		end
+		unitTest:assertError(error_func, incompatibleTypeMsg(1, "table", 2))
+	end,
+	lm = function(unitTest)
+		local R = RServe{}
+		local error_func = function()
+			R:lm(2)
+		end
+		unitTest:assertError(error_func, incompatibleTypeMsg(1, "table", 2))
 	end
 }

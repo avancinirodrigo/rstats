@@ -5,6 +5,10 @@ local QAP1_HEADER_FORMAT = "4*u4"
 local QAP1_PARAMETER_HEADER_FORMAT = "u1 u3"
 local QAP1_SEXP_HEADER_TYPE_FORMAT = "[1 | b2 u6]"
 local QAP1_SEXP_HEADER_LEN_FORMAT = "u3"
+local function vectorToString(expression)
+	local expressionR = "c("..table.concat(expression, ", ")..")"
+	return expressionR
+end
 RServe_ = {
 	type_ = "RServe",
 	--- Execute an R command. It returns an error message or a value.
@@ -38,6 +42,84 @@ RServe_ = {
 		else
 			return result
 		end
+	end,
+	--- It returns the arithmetic mean of a vector of values computed in R.
+	-- if an entry is of an incompatible type returns with error.
+	-- @arg expression a table of numbers.
+	-- @usage import ("rstats")
+	-- R = RServe{}
+	-- R:mean{1,2,3,4,5,6,7,8,9,10} -- 5.5
+	mean = function(self, expression)
+		if type(expression) ~= "table" then
+			incompatibleTypeError(1, "table", expression)
+		end
+		local expressionR = "mean("..vectorToString(expression)..")"
+		local result = self:evaluate(expressionR)
+		return result[1][1][1]
+	end,
+	--- It returns the standard deviation of a vector of values computed in R.
+	-- if an entry is of an incompatible type returns with error.
+	-- @arg expression a table of numbers.
+	-- @usage import ("rstats")
+	-- R = RServe{}
+	-- R:sd{1,2,3,4,5,6,7,8,9,10} -- 3.02765
+	sd = function(self, expression)
+		if type(expression) ~= "table" then
+			incompatibleTypeError(1, "table", expression)
+		end
+		local expressionR = "sd("..vectorToString(expression)..")"
+		local result = self:evaluate(expressionR)
+		return result[1][1][1]
+	end,
+	--- It returns the linear regression of a table of vectors computed in R.
+	-- if an entry is of an incompatible type returns with error.
+	-- @arg expression a data frame.
+	-- @usage import ("rstats")
+	-- R = RServe{}
+	-- R:lm{data = {ctl = {4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14}, trt = {4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69}, weight = {4.17, 5.58, 5.18, 6.11, 4.50, 4.61, 5.17, 4.53, 5.33, 5.14, 4.81, 4.17, 4.41, 3.59, 5.87, 3.83, 6.03, 4.89, 4.32, 4.69}}, response = "ctl", terms = {"weight", "trt"}} -- 5.6221, 0.2961, -0.4345
+	lm = function(self, expression)
+		if type(expression) ~= "table" then
+			incompatibleTypeError(1, "table", expression)
+		end
+		local term = #expression.terms
+		local stri, df, sumTerms
+		local str = vectorToString(expression.data[expression.response])
+		local i = term
+		while i > 0 do
+			local t = vectorToString(expression.data[expression.terms[i]])
+			if i == term then
+				stri = expression.terms[i].." <- "..t..";"
+			else
+				stri = stri..expression.terms[i].." <- "..t..";"
+			end
+			i = i - 1
+		end
+		df = expression.response.." = "..expression.response..", "
+		i = term
+		while i > 0 do
+			if i > 1 then
+				df = df..expression.terms[i].." = "..expression.terms[i]..", "
+			else
+				df = df..expression.terms[i].." = "..expression.terms[i].."); result = lm(formula = "
+			end
+			i = i - 1
+		end
+		i = 1
+		while i <= term do
+			if i == 1 then
+				sumTerms = expression.terms[i].." + "
+			else
+				if i == term then
+					sumTerms = sumTerms..expression.terms[i]
+				else
+					sumTerms = sumTerms..expression.terms[i].." + "
+				end
+			end
+			i = i + 1
+		end
+		local result = self:evaluate(expression.response.." <- "..str.."; "..stri.."; df = data.frame("..df..expression.response.." ~ "..sumTerms..", data = df)")
+		local resultTable = {result[1][2][2][1], result[1][2][2][2], result[1][2][2][3]}
+		return resultTable
 	end
 }
 metaTableRServe_ = {
