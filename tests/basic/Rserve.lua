@@ -2,6 +2,7 @@ return {
 	Rserve = function(unitTest)
 		local R = Rserve()
 		unitTest:assertType(R, "Rserve")
+		unitTest:assertType(R, "Rserve")
 	end,
 
 	luaRserveevaluate = function(unitTest)
