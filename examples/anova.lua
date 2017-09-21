@@ -16,7 +16,7 @@ data = DataFrame{
 x = R:anova{
 	data = data,
 	terms = {"ctl", "trt", "weight"},
-	typeAnova = "owa",
+	strategy = "owa",
 	factors = {"ctl", "trt"}
 }
 
