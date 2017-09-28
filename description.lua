@@ -1,5 +1,5 @@
-version = "0.1"
-date = "09 March 2016"
+version = "0.2"
+date = "21 September 2017"
 package = "rstats"
 title = "RServe integration"
 content = [[A package with statistical functions using Rserve.]]
